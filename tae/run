@@ -1,0 +1,11 @@
+#!/bin/bash
+source /usr/local/etc/ora11.csh
+#tar xvf adwords.tar;
+#./plagiarism-detector
+#rm *.class system.out.*
+javac -cp ojdbc5.jar adwords.java
+cp /path/to/*.dat .\
+cp /path/to/correct.system.out-* .\
+java -cp ojdbc5.jar:. adwords
+java autograder
+cat report.txt
