@@ -15,22 +15,57 @@ import java.sql.*;
 
 public class adwords {
 
-		    Connection conn =null;
+	Connection conn =null;
 		    
-		    // Create a Statement
-		    PreparedStatement pstmt = null;
+	// Create a Statement
+	PreparedStatement pstmt = null;
 	
-	private void executeQuery(String query) {
+	int K = 5;
 
+	HashMap<Keyword,Double> ranks = new HashMap<Keyword,Double>();
+	
+	class Ranker implements Comparator<Keyword> {
+		Map<Keyword, Double> base;
+		public Ranker (Map<Keyword, Double> base) {
+			this.base = base;
+		}
+
+		public int compare(Keyword a, Keyword b) {
+			return (base.get(a) >= base.get(b))? -1: 1;
+		}
 	}
 
+	private class Keyword {
+		int advertiserid;
+		String keyword;
+		double bid;
+		private Keyword(int aid, String keyword, double bid) {
+			advertiserid = aid;
+			this.keyword = keyword;
+			this.bid = bid;
+		}
+	}
+
+	/**
+	 * @param args
+	 */
+	  public static void main (String args [])
+		  {
+			adwords aw = new adwords();
+			try{
+			aw.setupDB();
+			} catch(Exception e) {
+				e.printStackTrace();
+			}
+			System.out.println("DB setup finished.");
+
+			aw.search();
+			//aW.rank();
+			aw.charge();
+			aw.closeDB();
+		}
+
 	private void search() {
-		// compare a query with keywords from db
-		// join Queries and Keywords tables	
-		/*
-			get keywords
-			results = "select (tokenize query as keywords) from Queries, Keywords"	
-		*/
 		int qid = 77;
 		String query = "select * from queries where qid = ?";
 		query = "select * from keywords where keyword like '%?%'";
@@ -41,7 +76,6 @@ public class adwords {
 		System.out.println(query2);
 
 	    	StringTokenizer tmp = new StringTokenizer(query2);
-		//Vector<String> tokens = new Vector<String>();
 		HashMap tokens = new HashMap();
 		String tok;	
 		int cnt;
@@ -50,7 +84,6 @@ public class adwords {
 			//System.out.print (tok + ", " );
 			cnt = tokens.containsKey(tok) ? ((Integer)tokens.get(tok) + 1) : 1;
 			tokens.put(tok, cnt);
-			//tokens.add(tok);
 		}
 		System.out.println(tokens);
 
@@ -64,13 +97,12 @@ public class adwords {
 			System.out.println("query executed");
 			System.out.println(rs);
  
-			List ranks = new ArrayList();
 			int aid;
 			String keyword;
 			double bid, ctc;
 			double score, adrank;
 
-				System.out.println( "advertiserid keyword bid");
+			System.out.println( "advertiserid keyword bid");
 			while (rs.next()) {
  
 				aid = rs.getInt("advertiserid");
@@ -78,14 +110,13 @@ public class adwords {
 				bid = rs.getDouble("bid");
 				
 				if(tokens.containsKey(keyword)) {
-				System.out.println((++n) + " " + aid  + " " + keyword + " " + bid );
+					System.out.println((++n) + " " + aid  + " " + keyword + " " + bid );
  
-				// Keyword k = new Keyword(aid, keyword, bid);
-				ctc = getCTC(aid);
-				score = similarity(tokens, aid, keyword);
-				//score = similarity(query2, aid, keyword);
-				adrank = bid * ctc * score;
-				// ranks.add(k, adrank);
+					ctc = getCTC(aid);
+					score = similarity(tokens, aid, keyword);
+					adrank = bid * ctc * score;
+					Keyword k = new Keyword(aid, keyword, bid);
+					ranks.put(k, adrank);
 				}
 			}
 		} catch (Exception e) {
@@ -94,28 +125,57 @@ public class adwords {
 		
 	}
 
-	private void rank() {
 		// AdRank = bid*ctc*similarity
 		// select keywords.bid*advertisers.ctc*(select count(*) from queries) as adrank from keywords,advertisers where keywords.keyword = 'photos' and keywords.advertiserid = 878 and advertisers.advertiserid = keywords.advertiserid order by adrank;
 		// select keywords.bid*advertisers.ctc as adrank from keywords,advertisers where keywords.keyword = 'photos' and keywords.advertiserid = 878 and advertisers.advertiserid = keywords.advertiserid order by adrank;
+
+	private void rank() {
+		TreeMap<Keyword,Double> map = new TreeMap(new Ranker(ranks));
+		map.putAll(ranks);	
+		System.out.println(map);	
 	}
 
 	private void charge() {
 		// only for first 100*x% ctc impressions
 		// repeat every 100 impressions
+		//rank();
+		TreeMap<Keyword,Double> map = new TreeMap(new Ranker(ranks));
+		map.putAll(ranks);	
+		System.out.println(map);	
+
+		//System.out.println(ranks);	
+
+		int i = 1;
+		for(Map.Entry<Keyword,Double> entry: map.entrySet()) {	
+			if (i > K) {break;}
+			Keyword key = (Keyword)entry.getKey();
+			Double score = (Double)entry.getValue();
+			System.out.println(i + " " + key.advertiserid + " " + key.keyword + " " + score);
+			///charge(key.advertiserid);
+			i ++;
+		}
 	}
 		
 	private double getCTC(int advertiserid) {
-		return 0;
+		String query = "select * from advertisers where advertiserid = ?";
+		double ctc = 0;
+	
+		try{
+			pstmt = conn.prepareStatement(query);	
+			pstmt.setInt(1, advertiserid);
+			ResultSet rs = pstmt.executeQuery();
+			while(rs.next()) {
+				ctc = rs.getDouble("ctc");
+				System.out.println(rs.getInt("advertiserid") + " " + ctc);
+			}
+			System.out.println();						
+		} catch (Exception e) {}
+		return ctc;
 	}
 	
 	private double similarity(HashMap tokens, int aid, String keyword) {
 		double score = 0;
-		//System.out.println(query +" " + aid + " " + keyword);
 		System.out.println(aid + " " + keyword);
-
-		//String query3 = "select * from keywords where keyword = ?";
-		//pstmt.setString(1, keyword);
 
 		String query2 = "select * from keywords where keywords.advertiserid = ?";
 
@@ -163,26 +223,6 @@ public class adwords {
 
 		return score;
 	}
-
-	/**
-	 * @param args
-	 */
-	  public static void main (String args [])
-		  {
-			adwords aw = new adwords();
-			try{
-			aw.setupDB();
-			} catch(Exception e) {
-				e.printStackTrace();
-			}
-			System.out.println("DB setup finished.");
-
-			aw.search();
-			aw.rank();
-			aw.charge();
-
-			aw.closeDB();
-		}
 
 	private void closeDB() {
 		try {
