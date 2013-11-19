@@ -38,24 +38,32 @@ public class adwords {
 		try {
 		pstmt = conn.prepareStatement(query);
 		pstmt.setInt(1, qid);
-//		pstmt.executeQuery();
 		//executeQuery(query);
 	
 		ResultSet rs = pstmt.executeQuery();
+		System.out.println("query executed");
 		System.out.println(rs);
  
+		query = "select * from keywords where keyword like '%?%'";
+		List keywords = new ArrayList();
+
 			while (rs.next()) {
  
-				qid = rs.getInt("QID");
-				query = rs.getString("QUERY");
+				qid = rs.getInt("qid");
+				query = rs.getString("query");
  
 				System.out.println("qid : " + qid);
 				System.out.println("query : " + query);
  
+				pstmt = conn.prepareStatement(query);
+				pstmt.setInt(1, qid);
+				
+				//keywords.add(keyword);
 			}
-		} catch (Exception e) {}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 		
-		List keywords = new ArrayList();
 		
 		
 	}
@@ -91,7 +99,15 @@ public class adwords {
 			aw.search();
 			aw.rank();
 			aw.charge();
+
+			aw.closeDB();
 		}
+
+	private void closeDB() {
+		try {
+			conn.close(); // ** IMPORTANT : Close connections when done **
+		} catch (Exception e) {}
+	}
 
 	//public void setupDB() {
 	public void setupDB() throws SQLException {
@@ -254,7 +270,7 @@ public class adwords {
 		    }
 */
 
-		    conn.close(); // ** IMPORTANT : Close connections when done **
+		    //conn.close(); // ** IMPORTANT : Close connections when done **
 	
 		  }
 }
