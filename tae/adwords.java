@@ -10,12 +10,19 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.PreparedStatement;
 import java.util.StringTokenizer;
+import java.util.*;
+import java.sql.*;
+
 public class adwords {
 
 		    Connection conn =null;
 		    
 		    // Create a Statement
 		    PreparedStatement pstmt = null;
+	
+	private void executeQuery(String query) {
+
+	}
 
 	private void search() {
 		// compare a query with keywords from db
@@ -24,8 +31,32 @@ public class adwords {
 			get keywords
 			results = "select (tokenize query as keywords) from Queries, Keywords"	
 		*/
-		String query = "select * from queries where qid = 77";
+		int qid = 77;
+		String query = "select * from queries where qid = ?";
 		System.out.println(query);
+
+		try {
+		pstmt = conn.prepareStatement(query);
+		pstmt.setInt(1, qid);
+//		pstmt.executeQuery();
+		//executeQuery(query);
+	
+		ResultSet rs = pstmt.executeQuery();
+		System.out.println(rs);
+ 
+			while (rs.next()) {
+ 
+				qid = rs.getInt("QID");
+				query = rs.getString("QUERY");
+ 
+				System.out.println("qid : " + qid);
+				System.out.println("query : " + query);
+ 
+			}
+		} catch (Exception e) {}
+		
+		List keywords = new ArrayList();
+		
 		
 	}
 
@@ -38,18 +69,31 @@ public class adwords {
 		// repeat every 100 impressions
 	}
 		
+	private double simlarity(Vector<Integer> qfreq, Vector<Integer> kfreq) {
+		double score = 0;
+
+		return score;
+	}
+
 	/**
 	 * @param args
 	 */
 	  public static void main (String args [])
 		  {
 			adwords aw = new adwords();
-			//aw.setupDB();
+			try{
+			aw.setupDB();
+			} catch(Exception e) {
+				e.printStackTrace();
+			}
+			System.out.println("DB setup finished.");
+
 			aw.search();
 			aw.rank();
 			aw.charge();
 		}
 
+	//public void setupDB() {
 	public void setupDB() throws SQLException {
 		    // Load the Oracle JDBC driver
 		    DriverManager.registerDriver(new oracle.jdbc.driver.OracleDriver());
@@ -95,16 +139,17 @@ public class adwords {
 		    		"FOREIGN KEY(advertiserId)" + 
 		    		"REFERENCES Advertisers(advertiserId)" + ")";
 		    
+			System.out.println("connecting DB ...");
 		    //Connection conn =
 			conn = 
 		      DriverManager.getConnection ("jdbc:oracle:thin:hr/hr@oracle1.cise.ufl.edu:1521:orcl",
 		                                   arrayInput[0], arrayInput[1]);
+			System.out.println("DB connected.");
 		    
+		
 		    // Create a Statement
 		    Statement stmt = conn.createStatement ();
 
-        	//PreparedStatement pstmt = null;   
-      
 	/*	    
 		try {    
 		// drop tables
@@ -114,7 +159,7 @@ public class adwords {
 
 		} catch (Exception e) {
 		}
-
+*/
 		    // Create table
 		 //   stmt.executeUpdate(Queries);
 		 //   stmt.executeUpdate(Advertisers);
@@ -147,7 +192,7 @@ public class adwords {
 		    }	catch(IOException e) {
 		    
 		    }
-		    
+*/		    
 		/*
 		    // read advertisers.dat and insert data to table
 		    try {
@@ -156,6 +201,7 @@ public class adwords {
 			    while((line = reader.readLine()) != null) {
 			    	StringTokenizer tmp = new StringTokenizer(line);
 			    	while(tmp.hasMoreElements()) {
+//insert into queries(qid,query)(select to_number(regexp_substr(ss, ‘[^’ || chr(9) || ‘]+’,1,1)), regexp_substr(ss, ‘[^’ || chr(9) || ‘]+’,1,2) from q);
 			    		stmt.executeUpdate("insert into Advertisers (advertiserId, budget, ctc) " + 
 			    					"values(" + Integer.parseInt(tmp.nextToken()) + "," + 
 			    					Float.parseFloat(tmp.nextToken()) + "," + Float.parseFloat(tmp.nextToken()) + ")");
