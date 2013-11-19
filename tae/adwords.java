@@ -50,10 +50,11 @@ public class adwords {
 			System.out.println("query executed");
 			System.out.println(rs);
  
-			List keywords = new ArrayList();
+			List ranks = new ArrayList();
 			int aid;
 			String keyword;
-			double bid;
+			double bid, ctc;
+			double score, adrank;
 
 				System.out.println( "advertiserid keyword bid");
 			while (rs.next()) {
@@ -67,10 +68,11 @@ public class adwords {
 				//System.out.println("keyword : " + keyword);
 				//System.out.println("bid : " + bid);
  
-				//keywords.add(keyword);
 				// Keyword k = new Keyword(aid, keyword, bid);
-				// double score = similarity(query2, aid, keyword);
-				// ranks.add(k, score);
+				ctc = getCTC(aid);
+				score = similarity(query2, aid, keyword);
+				adrank = bid * ctc * score;
+				// ranks.add(k, adrank);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -87,10 +89,14 @@ public class adwords {
 		// repeat every 100 impressions
 	}
 		
-	//private double simlarity(Vector<Integer> qfreq, Vector<Integer> kfreq) {
-	//private double simlarity(String query, Keyword keyword) {
-	private double simlarity(String query, int aid, String keyword) {
-		double score = 0;
+	private double getCTC(int advertiserid) {
+		return 1;
+	}
+	
+	//private double similarity(Vector<Integer> qfreq, Vector<Integer> kfreq) {
+	//private double similarity(String query, Keyword keyword) {
+	private double similarity(String query, int aid, String keyword) {
+		double score = 1;
 
 		return score;
 	}
