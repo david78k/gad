@@ -40,6 +40,16 @@ public class adwords {
 		System.out.println(query);
 		System.out.println(query2);
 
+	    	StringTokenizer tmp = new StringTokenizer(query);
+		Vector<String> tokens = new Vector<String>();
+		String tok;	
+	    	while(tmp.hasMoreElements()) {
+			tok = tmp.nextToken();
+			//System.out.print (tok + ", " );
+			tokens.add(tok);
+		}
+		System.out.println(tokens);
+
 		int n = 0;
 
 		try {
@@ -70,7 +80,8 @@ public class adwords {
  
 				// Keyword k = new Keyword(aid, keyword, bid);
 				ctc = getCTC(aid);
-				score = similarity(query2, aid, keyword);
+				score = similarity(tokens, aid, keyword);
+				//score = similarity(query2, aid, keyword);
 				adrank = bid * ctc * score;
 				// ranks.add(k, adrank);
 			}
@@ -82,6 +93,8 @@ public class adwords {
 
 	private void rank() {
 		// AdRank = bid*ctc*similarity
+		// select keywords.bid*advertisers.ctc*(select count(*) from queries) as adrank from keywords,advertisers where keywords.keyword = 'photos' and keywords.advertiserid = 878 and advertisers.advertiserid = keywords.advertiserid order by adrank;
+		// select keywords.bid*advertisers.ctc as adrank from keywords,advertisers where keywords.keyword = 'photos' and keywords.advertiserid = 878 and advertisers.advertiserid = keywords.advertiserid order by adrank;
 	}
 
 	private void charge() {
@@ -93,10 +106,31 @@ public class adwords {
 		return 1;
 	}
 	
-	//private double similarity(Vector<Integer> qfreq, Vector<Integer> kfreq) {
 	//private double similarity(String query, Keyword keyword) {
-	private double similarity(String query, int aid, String keyword) {
+	//private double similarity(String query, int aid, String keyword) {
+	private double similarity(Vector<String> tokens, int aid, String keyword) {
 		double score = 1;
+		//System.out.println(query +" " + aid + " " + keyword);
+		System.out.println(aid + " " + keyword);
+
+		//String query3 = "select * from keywords where keyword = ?";
+		//pstmt.setString(1, keyword);
+
+		String query2 = "select * from keywords where keywords.advertiserid = ?";
+
+		try {
+			//List keywords = new ArrayList();
+			Vector keywords = new Vector();
+			pstmt = conn.prepareStatement(query2);	
+			pstmt.setInt(1, aid);
+			ResultSet rs = pstmt.executeQuery();
+			while(rs.next()) {
+				System.out.println(rs.getInt("advertiserid") + " " + rs.getString("keyword"));
+				// keywords.add(k);	
+			}
+
+			
+		} catch (Exception e ) {}	
 
 		return score;
 	}
