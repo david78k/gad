@@ -40,13 +40,17 @@ public class adwords {
 		System.out.println(query);
 		System.out.println(query2);
 
-	    	StringTokenizer tmp = new StringTokenizer(query);
-		Vector<String> tokens = new Vector<String>();
+	    	StringTokenizer tmp = new StringTokenizer(query2);
+		//Vector<String> tokens = new Vector<String>();
+		HashMap tokens = new HashMap();
 		String tok;	
+		int cnt;
 	    	while(tmp.hasMoreElements()) {
 			tok = tmp.nextToken();
 			//System.out.print (tok + ", " );
-			tokens.add(tok);
+			cnt = tokens.containsKey(tok) ? ((Integer)tokens.get(tok) + 1) : 1;
+			tokens.put(tok, cnt);
+			//tokens.add(tok);
 		}
 		System.out.println(tokens);
 
@@ -74,9 +78,6 @@ public class adwords {
 				bid = rs.getDouble("bid");
 				
 				System.out.println((++n) + " " + aid  + " " + keyword + " " + bid );
-				//System.out.println((++n) + "advertiserid : " + aid  + " " + keyword + );
-				//System.out.println("keyword : " + keyword);
-				//System.out.println("bid : " + bid);
  
 				// Keyword k = new Keyword(aid, keyword, bid);
 				ctc = getCTC(aid);
@@ -108,7 +109,8 @@ public class adwords {
 	
 	//private double similarity(String query, Keyword keyword) {
 	//private double similarity(String query, int aid, String keyword) {
-	private double similarity(Vector<String> tokens, int aid, String keyword) {
+	//private double similarity(Vector<String> tokens, int aid, String keyword) {
+	private double similarity(HashMap tokens, int aid, String keyword) {
 		double score = 1;
 		//System.out.println(query +" " + aid + " " + keyword);
 		System.out.println(aid + " " + keyword);
@@ -129,7 +131,7 @@ public class adwords {
 				// keywords.add(k);	
 			}
 
-			
+						
 		} catch (Exception e ) {}	
 
 		return score;
@@ -252,8 +254,6 @@ public class adwords {
 			    		//		"values(" + Integer.parseInt(tmp.nextToken()) + "," + "'" + tmp.nextToken() + "'" + ")");
 			    		//System.out.print("insert into Queries (qid, query) " + 
 			    		//		"values(" + Integer.parseInt(tmp.nextToken()) + "," + "'" + tmp.nextToken() + "'" + ")\n");
-			    		// 제가 말씀드린 부분이 여기에요.. print는 제대로 되는데 oracle에 넣을때는 말씀드린 그 에러가 나는거 같아요. 35번째 test케이스에서 걸려요.
-			    		// 오라클에서 돌리면..
 			    	}
 			    }
 			    reader.close();
