@@ -77,6 +77,7 @@ public class adwords {
 				keyword = rs.getString("keyword");
 				bid = rs.getDouble("bid");
 				
+				if(tokens.containsKey(keyword)) {
 				System.out.println((++n) + " " + aid  + " " + keyword + " " + bid );
  
 				// Keyword k = new Keyword(aid, keyword, bid);
@@ -85,6 +86,7 @@ public class adwords {
 				//score = similarity(query2, aid, keyword);
 				adrank = bid * ctc * score;
 				// ranks.add(k, adrank);
+				}
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -122,16 +124,34 @@ public class adwords {
 
 		try {
 			//List keywords = new ArrayList();
-			Vector keywords = new Vector();
+			//Vector keywords = new Vector();
+			HashMap keywords = new HashMap();
+			int cnt; String k;
+
 			pstmt = conn.prepareStatement(query2);	
 			pstmt.setInt(1, aid);
 			ResultSet rs = pstmt.executeQuery();
 			while(rs.next()) {
-				System.out.println(rs.getInt("advertiserid") + " " + rs.getString("keyword"));
-				// keywords.add(k);	
+				k = rs.getString("keyword");
+				System.out.println(rs.getInt("advertiserid") + " " + k);
+				cnt = keywords.containsKey(k) ? ((Integer)keywords.get(k) + 1) : 1;
+				keywords.put(k, cnt);
+			}
+			System.out.println(keywords);
+						
+			HashMap tokFreqs = new HashMap(tokens);
+			HashMap keyFreqs = new HashMap(keywords);
+
+			for(String kw: (Set<String>)keywords.keySet()) {
+				if(!tokFreqs.containsKey(kw)) tokFreqs.put(kw, 0);
+			}
+			for(String tok:(Set<String>) tokens.keySet()) {
+				if(!keyFreqs.containsKey(tok)) keyFreqs.put(tok, 0);
 			}
 
-						
+			System.out.println(tokFreqs);
+			System.out.println(keyFreqs);
+			
 		} catch (Exception e ) {}	
 
 		return score;
