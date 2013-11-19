@@ -33,38 +33,48 @@ public class adwords {
 		*/
 		int qid = 77;
 		String query = "select * from queries where qid = ?";
+		query = "select * from keywords where keyword like '%?%'";
+		query = "select * from keywords where ? like '%'|| keyword || '%'";
+		String query2 = "http www.flickr.com photos 88145967 n00 24368586 in pool-32148876 n00";
+//		query = "select * from keywords where '" + query2 + "' like '%'|| keyword || '%'";
 		System.out.println(query);
+		System.out.println(query2);
+
+		int n = 0;
 
 		try {
-		pstmt = conn.prepareStatement(query);
-		pstmt.setInt(1, qid);
-		//executeQuery(query);
-	
-		ResultSet rs = pstmt.executeQuery();
-		System.out.println("query executed");
-		System.out.println(rs);
+			pstmt = conn.prepareStatement(query);
+			pstmt.setString(1, query2);
+				
+			ResultSet rs = pstmt.executeQuery();
+			System.out.println("query executed");
+			System.out.println(rs);
  
-		query = "select * from keywords where keyword like '%?%'";
-		List keywords = new ArrayList();
+			List keywords = new ArrayList();
+			int aid;
+			String keyword;
+			double bid;
 
+				System.out.println( "advertiserid keyword bid");
 			while (rs.next()) {
  
-				qid = rs.getInt("qid");
-				query = rs.getString("query");
- 
-				System.out.println("qid : " + qid);
-				System.out.println("query : " + query);
- 
-				pstmt = conn.prepareStatement(query);
-				pstmt.setInt(1, qid);
+				aid = rs.getInt("advertiserid");
+				keyword = rs.getString("keyword");
+				bid = rs.getDouble("bid");
 				
+				System.out.println((++n) + " " + aid  + " " + keyword + " " + bid );
+				//System.out.println((++n) + "advertiserid : " + aid  + " " + keyword + );
+				//System.out.println("keyword : " + keyword);
+				//System.out.println("bid : " + bid);
+ 
 				//keywords.add(keyword);
+				// Keyword k = new Keyword(aid, keyword, bid);
+				// double score = similarity(query2, aid, keyword);
+				// ranks.add(k, score);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		
-		
 		
 	}
 
@@ -77,7 +87,9 @@ public class adwords {
 		// repeat every 100 impressions
 	}
 		
-	private double simlarity(Vector<Integer> qfreq, Vector<Integer> kfreq) {
+	//private double simlarity(Vector<Integer> qfreq, Vector<Integer> kfreq) {
+	//private double simlarity(String query, Keyword keyword) {
+	private double simlarity(String query, int aid, String keyword) {
 		double score = 0;
 
 		return score;
