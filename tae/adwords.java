@@ -12,12 +12,45 @@ import java.sql.PreparedStatement;
 import java.util.StringTokenizer;
 public class adwords {
 
+		    Connection conn =null;
+		    
+		    // Create a Statement
+		    PreparedStatement pstmt = null;
+
+	private void search() {
+		// compare a query with keywords from db
+		// join Queries and Keywords tables	
+		/*
+			get keywords
+			results = "select (tokenize query as keywords) from Queries, Keywords"	
+		*/
+		String query = "select * from queries where qid = 77";
+		System.out.println(query);
+		
+	}
+
+	private void rank() {
+		// AdRank = bid*ctc*similarity
+	}
+
+	private void charge() {
+		// only for first 100*x% ctc impressions
+		// repeat every 100 impressions
+	}
+		
 	/**
 	 * @param args
 	 */
 	  public static void main (String args [])
-		       throws SQLException
 		  {
+			adwords aw = new adwords();
+			//aw.setupDB();
+			aw.search();
+			aw.rank();
+			aw.charge();
+		}
+
+	public void setupDB() throws SQLException {
 		    // Load the Oracle JDBC driver
 		    DriverManager.registerDriver(new oracle.jdbc.driver.OracleDriver());
 
@@ -62,17 +95,15 @@ public class adwords {
 		    		"FOREIGN KEY(advertiserId)" + 
 		    		"REFERENCES Advertisers(advertiserId)" + ")";
 		    
-
-	    
-
-		    Connection conn =
+		    //Connection conn =
+			conn = 
 		      DriverManager.getConnection ("jdbc:oracle:thin:hr/hr@oracle1.cise.ufl.edu:1521:orcl",
 		                                   arrayInput[0], arrayInput[1]);
 		    
 		    // Create a Statement
 		    Statement stmt = conn.createStatement ();
 
-        	PreparedStatement pstmt = null;   
+        	//PreparedStatement pstmt = null;   
       
 	/*	    
 		try {    
