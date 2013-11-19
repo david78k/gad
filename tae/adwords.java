@@ -106,14 +106,11 @@ public class adwords {
 	}
 		
 	private double getCTC(int advertiserid) {
-		return 1;
+		return 0;
 	}
 	
-	//private double similarity(String query, Keyword keyword) {
-	//private double similarity(String query, int aid, String keyword) {
-	//private double similarity(Vector<String> tokens, int aid, String keyword) {
 	private double similarity(HashMap tokens, int aid, String keyword) {
-		double score = 1;
+		double score = 0;
 		//System.out.println(query +" " + aid + " " + keyword);
 		System.out.println(aid + " " + keyword);
 
@@ -123,8 +120,6 @@ public class adwords {
 		String query2 = "select * from keywords where keywords.advertiserid = ?";
 
 		try {
-			//List keywords = new ArrayList();
-			//Vector keywords = new Vector();
 			HashMap keywords = new HashMap();
 			int cnt; String k;
 
@@ -142,15 +137,27 @@ public class adwords {
 			HashMap tokFreqs = new HashMap(tokens);
 			HashMap keyFreqs = new HashMap(keywords);
 
-			for(String kw: (Set<String>)keywords.keySet()) {
+			for(String kw: (Set<String>)keywords.keySet()) 
 				if(!tokFreqs.containsKey(kw)) tokFreqs.put(kw, 0);
-			}
-			for(String tok:(Set<String>) tokens.keySet()) {
+
+			for(String tok:(Set<String>) tokens.keySet()) 
 				if(!keyFreqs.containsKey(tok)) keyFreqs.put(tok, 0);
-			}
 
 			System.out.println(tokFreqs);
 			System.out.println(keyFreqs);
+
+			int count1, count2;
+			int sum = 0, sum1 = 0, sum2 = 0;
+			for(String tok: (Set<String>)tokFreqs.keySet()) {
+				count1 = (Integer)tokFreqs.get(tok);	
+				count2 = (Integer)keyFreqs.get(tok);	
+				sum += count1*count2;
+				sum1 += count1*count1;
+				sum2 += count2*count2;	
+			}
+			
+			score = sum/(Math.sqrt(sum1)*Math.sqrt(sum2));
+			System.out.println(score);
 			
 		} catch (Exception e ) {}	
 
