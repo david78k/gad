@@ -214,7 +214,7 @@ public class adwords {
 				pstmt.setInt(2, impression);
 				pstmt.setInt(3, aid);
 				pstmt.executeUpdate();
-				//conn.commit();
+				conn.commit();
 			} catch (Exception e) {}
 			
 			// write to final report output file
