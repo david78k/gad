@@ -390,6 +390,8 @@ public class adwords {
 */		    
 		/*
 		    // read advertisers.dat and insert data to table
+			//alter table advertisers add impression int;
+			//alter table advertisers add balance float;
 		    try {
 			    BufferedReader reader = new BufferedReader(new FileReader("Advertisers.dat"));
 			    String line;
