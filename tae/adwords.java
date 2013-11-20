@@ -21,6 +21,7 @@ public class adwords {
 	PreparedStatement pstmt = null;
 	
 	int K = 5;
+	int qid = 77;
 
 	HashMap<Keyword,Double> ranks = new HashMap<Keyword,Double>();
 	
@@ -31,7 +32,11 @@ public class adwords {
 		}
 
 		public int compare(Keyword a, Keyword b) {
-			return (base.get(a) >= base.get(b))? -1: 1;
+			// break the tie
+			if (base.get(a) == base.get(b)) {
+				return (a.advertiserid <= b.advertiserid)? -1:1;
+			}
+			return (base.get(a) > base.get(b))? -1: 1;
 		}
 	}
 
@@ -66,12 +71,11 @@ public class adwords {
 		}
 
 	private void search() {
-		int qid = 77;
 		String query = "select * from queries where qid = ?";
 		query = "select * from keywords where keyword like '%?%'";
 		query = "select * from keywords where ? like '%'|| keyword || '%'";
+		//query = "select advertiserid,keyword,bid from keywords,advertisers where ? like '%'|| keyword || '%' and ";
 		String query2 = "http www.flickr.com photos 88145967 n00 24368586 in pool-32148876 n00";
-//		query = "select * from keywords where '" + query2 + "' like '%'|| keyword || '%'";
 		System.out.println(query);
 		System.out.println(query2);
 
@@ -145,13 +149,36 @@ public class adwords {
 
 		//System.out.println(ranks);	
 
+		int impression;
 		int i = 1;
 		for(Map.Entry<Keyword,Double> entry: map.entrySet()) {	
 			if (i > K) {break;}
 			Keyword key = (Keyword)entry.getKey();
 			Double score = (Double)entry.getValue();
 			System.out.println(i + " " + key.advertiserid + " " + key.keyword + " " + score);
-			///charge(key.advertiserid);
+			
+			// get balance and impression from db
+
+
+			// charge only if balance < budget - bid
+			// and impression <= x*100
+			//if(adver.balance > 
+			balance = adver.budget - adver.bid;
+			String q = "update ";
+			// update db: budget and impression. if impression is 100, reset to zero
+			/*
+			try{
+				pstmt = conn.prepareStatement(q);	
+				pstmt.setInt(1, advertiserid);
+				pstmt.executeUpdate();
+			} catch (Exception e) {}
+			*/
+			
+			// write to final report output file
+			// qid, rank, advertiserid, balance, budget	
+			// qid, i, key.advertiserid, advertiser.balance, advertiser.budget 
+			System.out.println(qid + " " + i + " " + key.advertiserid + " " + balance + " " + adver.budget);
+
 			i ++;
 		}
 	}
@@ -262,7 +289,6 @@ public class adwords {
 		    }	catch(IOException e) {
 		    
 		    }
-		    
 		    
 		    
 		    String Queries = "create table Queries ( " +
