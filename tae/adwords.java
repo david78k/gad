@@ -15,15 +15,19 @@ import java.sql.*;
 
 public class adwords {
 
+		    //As index order => myusername, password, # of ads of Task 1~6
+		    String arrayInput [] = new String [8];
+		String outfile = "system.out.1";
+		    
 	Connection conn =null;
 		    
 	// Create a Statement
 	PreparedStatement pstmt = null;
 	
 	int K = 5;
-	//int qid = 77;
+	int qid = 77;
 	//int qid = 79;
-	int qid = 97;
+	//int qid = 97;
 
 	HashMap<Keyword,Double> ranks = new HashMap<Keyword,Double>();
 	
@@ -76,23 +80,21 @@ public class adwords {
 		String query0 = "select * from queries where qid = ?";
 		String query = "select * from keywords where keyword like '%?%'";
 		query = "select * from keywords where ? like '%'|| keyword || '%'";
-		//query = "select advertiserid,keyword,bid from keywords,advertisers where ? like '%'|| keyword || '%' and ";
+		query = "select * from keywords, advertisers, " + 
+			"(" + 
+        			"(" 
+	  +"              select regexp_substr(query,'[^ ]+',1,level) val " 
+	   +"             from (select * from queries where qid = ?) "
+	     +"           connect by level <= length(query) - length(replace(query,' ')) + 1 "
+		 +"       ) "
+		+") tokens "
+		+" where tokens.val = keywords.keyword"
+		+"        and keywords.advertiserid = advertisers.advertiserid"
+		+"        and advertisers.balance >= keywords.bid"
+		;
+
 		String query2 = "http www.flickr.com photos 88145967 n00 24368586 in pool-32148876 n00";
 
-		try {
-			pstmt = conn.prepareStatement(query0);
-			pstmt.setInt(1, qid);
-				
-			ResultSet rs = pstmt.executeQuery();
-			//System.out.println("query executed");
-			while (rs.next()) {
-				qid = rs.getInt("qid");
-				query2 = rs.getString("query");
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	
 		System.out.println(query);
 		System.out.println(query2);
 
@@ -112,7 +114,8 @@ public class adwords {
 
 		try {
 			pstmt = conn.prepareStatement(query);
-			pstmt.setString(1, query2);
+			pstmt.setInt(1, qid);
+			//pstmt.setString(1, query2);
 				
 			ResultSet rs = pstmt.executeQuery();
 			//System.out.println("query executed");
@@ -130,7 +133,7 @@ public class adwords {
 				keyword = rs.getString("keyword");
 				bid = rs.getDouble("bid");
 				
-				if(tokens.containsKey(keyword)) {
+				//if(tokens.containsKey(keyword)) {
 					System.out.println((++n) + " " + aid  + " " + keyword + " " + bid );
  
 					ctc = getCTC(aid);
@@ -138,7 +141,7 @@ public class adwords {
 					adrank = bid * ctc * score;
 					Keyword k = new Keyword(aid, keyword, bid);
 					ranks.put(k, adrank);
-				}
+				//}
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -166,7 +169,7 @@ public class adwords {
 
 		//System.out.println(ranks);	
 
-		double balance = 0, budget = 0;
+		double balance = 0, budget = 0, ctc = 0;
 		int impression = 0;
 		int i = 1;
 		for(Map.Entry<Keyword,Double> entry: map.entrySet()) {	
@@ -185,34 +188,43 @@ public class adwords {
 				ResultSet rs = pstmt.executeQuery();
 				while(rs.next()) {
 					budget = rs.getDouble("budget");
-					//balance = rs.getDouble("balance");
-					//impression = rs.getDouble("impression");
-					//System.out.println(rs.getInt("advertiserid") + " " + ctc);
+					ctc = rs.getDouble("ctc");
+					balance = rs.getDouble("balance");
+					impression = rs.getInt("impression");
+					//System.out.println(rs.getInt("advertiserid") + " " + balance + " " + budget + " " + impression + " " + ctc);
 				}
 				System.out.println();						
 			} catch (Exception e) {}
-	
 
-			// charge only if balance < budget - bid
-			// and impression <= x*100
-			//if(adver.balance > 
-			balance = budget - key.bid;
-			//balance = balance - key.bid;
+			// charge only if clicked or impression <= x*100
+			if(impression <= ctc*100) {
+				//balance = budget - key.bid;
+				balance = balance - key.bid;
+			}
+
 			if (impression == 100) impression = 0;
-			String q = "update advertisers balance = ? and impression = ?";
+			else impression ++;
+
+			String q = "update advertisers set balance = ? and impression = ? where advertiserid = ?";
 			// update db: budget and impression. if impression is 100, reset to zero
-			/*
+			
 			try{
 				pstmt = conn.prepareStatement(q);	
-				pstmt.setInt(1, advertiserid);
+				pstmt.setDouble(1, balance);
+				pstmt.setInt(2, impression);
+				pstmt.setInt(3, aid);
 				pstmt.executeUpdate();
+				//conn.commit();
 			} catch (Exception e) {}
-			*/
 			
 			// write to final report output file
 			// qid, rank, advertiserid, balance, budget	
 			// qid, i, key.advertiserid, advertiser.balance, advertiser.budget 
-			System.out.println(qid + " " + i + " " + aid + " " + balance + " " + budget);
+			String filename = "system.out.1";
+			String output = qid + " " + i + " " + aid + " " + balance + " " + budget;
+			System.out.println(output);
+			//FileWriter fw = new FileWriter();
+			//fw.println(output);
 
 			i ++;
 		}
@@ -301,9 +313,6 @@ public class adwords {
 		    // You can use either the fully specified SQL*net syntax or a short cut
 		    // syntax as <host>:<port>:<sid>.  The example uses the short cut syntax.
 		    
-		    //As index order => myusername, password, # of ads of Task 1~6
-		    String arrayInput [] = new String [8];
-		    
 		    
 		    // read system.in
 		    try {
@@ -325,7 +334,8 @@ public class adwords {
 		    
 		    }
 		    
-		    
+//			K = arrayInput[2];
+			
 		    String Queries = "create table Queries ( " +
 		    		"qid INT PRIMARY KEY, query VARCHAR(400)" + ")";
 		    String Advertisers = "create table Advertisers ( " +
