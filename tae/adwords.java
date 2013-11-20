@@ -198,24 +198,23 @@ public class adwords {
 
 			// charge only if clicked or impression <= x*100
 			if(impression <= ctc*100) {
-				//balance = budget - key.bid;
 				balance = balance - key.bid;
 			}
 
 			if (impression == 100) impression = 0;
 			else impression ++;
 
-			String q = "update advertisers set balance = ? and impression = ? where advertiserid = ?";
 			// update db: budget and impression. if impression is 100, reset to zero
-			
+			String q = "update advertisers set balance = ?, impression = ? where advertiserid = ?";
 			try{
 				pstmt = conn.prepareStatement(q);	
 				pstmt.setDouble(1, balance);
 				pstmt.setInt(2, impression);
 				pstmt.setInt(3, aid);
 				pstmt.executeUpdate();
-				conn.commit();
-			} catch (Exception e) {}
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
 			
 			// write to final report output file
 			// qid, rank, advertiserid, balance, budget	
